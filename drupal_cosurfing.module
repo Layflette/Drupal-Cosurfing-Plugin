@@ -1,0 +1,299 @@
+<?php  
+
+
+$currentLang;
+function loadLanguage()
+{
+  global $currentLang;
+  $dirloc = drupal_get_path('module', 'drupal_cosurfing');
+  $xml = simplexml_load_file($dirloc.'/languages/current.xml');
+  $currentLang = $xml->{'lang'};
+}
+
+
+function getTranslation($element)
+{
+  global $currentLang;
+  loadLanguage();
+  $dirloc = drupal_get_path('module', 'drupal_cosurfing');
+  if($currentLang == 'pl')
+  {
+    $xml = simplexml_load_file($dirloc.'/languages/pl.xml');
+    return $xml->{$element};
+  }
+  else // eng
+  {
+    $xml = simplexml_load_file($dirloc.'/languages/en.xml');
+    return $xml->{$element};
+  }
+}
+
+function changeLang($param)
+{
+  
+  $dirloc = drupal_get_path('module', 'drupal_cosurfing').'/languages/current.xml';
+  $file = fopen($dirloc, 'w');
+
+  if($param == 'pl')
+  {
+    $temp = '<?xml version="1.0" encoding="UTF-8"?><current><lang><![CDATA[pl]]></lang></current>';
+    fwrite($file, $temp);
+  }
+    
+  if($param == 'en')
+  {
+    $temp = '<?xml version="1.0" encoding="UTF-8"?><current><lang><![CDATA[en]]></lang></current>';
+    fwrite($file, $temp);
+  }
+  fclose($file);
+  loadLanguage();
+}
+
+
+function drupal_cosurfing_menu() {
+  loadLanguage();
+  $items = array();
+
+  global $language;
+  $iso_code = $language->language;
+  if(strpos($iso_code, 'pl') !== false)
+      changeLang('pl');
+  else if(strpos($iso_code, 'en') !== false)
+      changeLang('en');
+
+  $items['admin/config/drupal_cosurfing_menu'] = array(
+      'title' => 'Cosurfing settings', 
+      'description' => 'Podaj data token',
+      'page callback' => 'drupal_get_form', 
+      'page arguments' => array('drupal_cosurfing_form'), 
+      'access callback' => TRUE
+    );
+
+    return $items;
+}
+
+
+function getEmailAndPageUrl()
+{
+    global $base_url;
+    $site_email = variable_get('site_mail', '');
+    $site_url = $base_url;
+
+    $all_reflink = 'email='.$site_email.'&ampsite='.$site_url .'&ampfrom=drupal';
+    return $all_reflink;
+}
+
+function drupal_cosurfing_form($form, &$form_state) {
+
+  if (isset($_GET['cslan']) && ($_GET['cslan'] == 'pl')) 
+    changeLang('pl');
+  if (isset($_GET['cslan']) && ($_GET['cslan'] == 'en'))  
+    changeLang('en'); 
+  
+  $form['logo'] = array(
+    '#type' => 'fieldset',
+    '#description' => t(
+        '
+        <div id="container">
+          <div id="logo">
+            <a href="http://cosurfing.net/"> <img src="https://cosurfing.net/assets/img/logoCosurfingBlackBg.png" width="250" height="70" /> </a>
+          </div>
+          </div>'
+
+      ),
+    );
+
+  $form['tytul'] = array(
+    '#type' => 'fieldset',
+    '#value' => getTranslation('title'),
+    '#prefix' => '<div id="container"><div id="h">',
+    '#suffix' => '</div></div>',
+    );
+
+
+ $form['tokenField'] = array(
+    '#type' => 'textfield', 
+    '#title' => getTranslation('label1'),
+    '#size' => 10,
+    '#maxlength' => 10,
+    '#required' => FALSE, 
+    '#prefix' => '<div id="datatoken">',
+    '#suffix' => '</div>',
+  );
+  
+
+$form['submit_button'] = array(
+    '#type' => 'submit',
+    '#value' =>  substr(getTranslation('button'), 0),
+    '#prefix' => '<div id="subButton">',
+    '#suffix' => '</div>',
+  );
+
+
+$form['monitory'] = array(
+    '#type' => 'fieldset',
+    '#description' => t
+      (
+        '
+        <div id="container">
+          <div id="link">
+            <a href="https://cosurfing.net/cpanel/index.html?'.getEmailAndPageUrl().'">'.getTranslation('link').'</a>
+          </div>
+          <div id="monitor">
+              <div id="monitorH">
+                '.getTranslation('monitor').'
+              </div>
+              <div id="monitorB">
+                <div class="subDoodleContainer">
+                  <img src="http://cosurfing.net/assets/img/subpages/screens.png" alt=""  id="screens" >
+                  <div id="subVscreen1" class="subVscreen">
+                    <img src="http://cosurfing.net/assets/img/cursor_ico.png" id="cursor1" class="vcursor" />
+                  </div>
+                  <div id="subVscreen2"   class="subVscreen">
+                    <img src="http://cosurfing.net/assets/img/cursor_ico.png" id="cursor2"  class="vcursor"/>
+                  </div>
+                  <div id="subVlinker" class="subVlinker">
+                  </div>
+                </div>
+                <script src="http://cosurfing.net/js/agency.js"></script>
+                <script src="https://cosurfing.net/assets/js/jquery-1.10.2.min.js"></script>
+                <script src="https://cosurfing.net/assets/js/bootstrap.js"></script>
+                <link href="https://cosurfing.net/assets/css/magic-bootstrap-cosurfing.min.css" rel="stylesheet">
+                <link rel="https://cosurfing.net/assets/css/magic-bootstrap-cosurfing.less" type="text/css" href="style.less">
+                <script src="https://cosurfing.net/assets/js/script.js" type="text/javascript"></script>
+              </div>
+          </div>
+          <div id="footerr">
+            '.getTranslation('footer').'
+          </div>
+          <div id="footerAll">
+            <div id="footerLeft">
+              <span id="span1">WebLive Systems</span><br><br>  
+
+              Phone: +48 602 885 891<br> 
+              Fax: +48 022 247-82-57<br> 
+              info@weblive.com.pl<br>   
+              www: weblive.com.pl<br><br>   
+
+              NIP : 664-201-48-34<br> 
+              REGON : 260618454<br> 
+            </div>
+            <div id="footerRight">
+              <span id="span1">'.getTranslation('language').'</span><br><br>
+              <table id="foot">
+                <tr>
+                  <td>
+                    <img src="https://cosurfing.net/assets/img/flagaPolski.gif" width="22" height="13">
+                  </td>
+                  <td>
+                    <a href="'.strtok($_SERVER["REQUEST_URI"],'?').'?cslan=pl">Polski</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <img src="https://cosurfing.net/assets/img/flagaBrytania.gif" width="22" height="13">
+                  </td>
+                  <td>
+                    <a href="'.strtok($_SERVER["REQUEST_URI"],'?').'?cslan=en">English</a>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <br class="clear" />
+          </div>
+        </div>
+        <style>
+          #container{width: 800px; margin-left: auto; margin-right: auto;}
+          #logo{background-color: #393E42; text-align: center;}
+          #h{margin-top: 5px; margin-bottom: 10px; height: 18px; font-size: 28px; color: black;text-align: center; font-weight: bold; padding: 15px;  border-bottom: 2px dotted #D8E0E6;}
+          #container{width: 800px; margin-left: auto; margin-right: auto;}
+          #datatoken{text-align : center; font-size: 20px;}
+          #subButton{text-align : center; font-size: 16px;}
+          #link{font-size: 16px; padding: 1px; text-align: center; margin-bottom: 10px; border-bottom: 2px dotted #D8E0E6;}
+          #monitor{text-align: center;background-color: #D8E0E6;min-height: 100px;}
+          #monitorH{color: black;font-size: 25px;font-weight: bold;padding: 5px;margin-top: 5px;margin-bottom: 10px;}
+          #monitorB{text-align: center;}
+          #footerr{background-color: #393E42;clear: both;color: white;text-align: center;padding: 10px;font-size: 12px;}
+          #plButton{font-size: 12px; float: left; font-weight: bold;}
+          #engButton{font-size: 12px; float: left; font-weight: bold;}
+          #footerAll
+          { 
+            border-top: 3px solid #1CAD32;  
+            padding: 15px; 
+            background-color: #393E42; 
+          }
+          #footerLeft
+          {
+            color: #ABABAB;
+            margin-left: 15%;
+            float: left;
+            width: 30%;
+            text-align: center;
+            border: 0;
+          }
+          #footerRight
+          {
+            font-size: 15px;
+            margin-right: 15%;
+            float: right;
+            width: 30%;
+            text-align: center;
+            border: 0;
+          }
+          .clear 
+          {
+              clear: both;
+          }
+          #span1
+          {
+            color: white;
+            font-size: 15px;
+          }
+          table#foot
+          {
+            border: 0;
+            text-align: center;
+            margin-left: 70px;
+          }
+          #foot td
+          {
+            width: 1px;
+            border: 0;
+            padding: 5px;
+            text-align: left;
+          }
+          #foot tr
+          {
+            border: 0;
+          }
+        </style>'
+
+      ),
+    );
+
+
+  
+$form['actions']['submit']['#attributes']['class'][] = 'form-submitone';
+$form['#submit'][] = 'drupal_cosurfing_submit_handler';
+
+
+  return $form;
+}
+
+
+
+function drupal_cosurfing_submit_handler($form, &$form_state)
+{
+
+  $adres = $form_state['values']['tokenField'];
+  drupal_set_message(t($adres));
+  variable_set('data_token', $adres);
+}
+
+
+function drupal_cosurfing_help()
+{ 
+  loadLanguage();
+  $adres = variable_get('data_token');
+  echo '<script src="https://cosurfing.s3.amazonaws.com/cosurfing.nocache.js" data-token="'.$adres.'" id="cosurfing_net_id"></script>';
+}

@@ -1,0 +1,7 @@
+name = drupal_cosurfing
+description = Add JavaScrip code to page.
+core = 7.x
+package = Cosurfing
+
+configure = admin/config/drupal_cosurfing_menu
+
