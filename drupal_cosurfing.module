@@ -21,7 +21,7 @@ function getTranslation($element)
     $xml = simplexml_load_file($dirloc.'/languages/pl.xml');
     return $xml->{$element};
   }
-  else // eng
+  else 
   {
     $xml = simplexml_load_file($dirloc.'/languages/en.xml');
     return $xml->{$element};
